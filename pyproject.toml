@@ -32,9 +32,13 @@ dev = ["pytest>=7.0"]
 
 [project.scripts]
 img-freq-extractor = "img_freq_extractor.cli:main"
+img-freq-webui = "img_freq_extractor.server:serve"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+img_freq_extractor = ["web/static/*.html", "web/static/*.css", "web/static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

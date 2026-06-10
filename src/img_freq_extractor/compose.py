@@ -8,6 +8,7 @@ from typing import Iterable, Sequence
 import numpy as np
 from PIL import Image
 
+from .analyze import BinarizeMethod, binarize_image
 from .filter import FilterMode, apply_cutoff
 
 
@@ -41,6 +42,11 @@ def process_image(
     soft_edge_px: float = 0.0,
     make_strip: bool = True,
     output_format: str = "png",
+    normalize: bool = False,
+    binarize: bool = False,
+    binarize_method: BinarizeMethod = "otsu",
+    binarize_threshold: float | None = None,
+    binarize_invert: bool = False,
 ) -> list[Path]:
     """1 枚の入力画像に対し、複数カットオフでフィルタを適用して保存する。
 
@@ -52,6 +58,13 @@ def process_image(
         soft_edge_px: マスクの縁ぼかし。
         make_strip: True なら原本 + 各カットオフを横並びにした比較画像も出力。
         output_format: 拡張子（"png" / "jpg" 等）。
+        normalize: True かつ highpass/bandpass の場合、視認しやすいよう出力を
+            正規化する（色相保持の全チャネル共通スケール）。
+        binarize: True なら各カットオフ画像を二値化（白黒化）して保存する。
+            X 投稿 2〜4 枚目のような白黒エッジ画像を再現する用途。
+        binarize_method: "otsu"（自動閾値）または "fixed"。
+        binarize_threshold: `binarize_method="fixed"` 時の閾値（0..255）。
+        binarize_invert: True で 0/255 を反転。
 
     Returns:
         生成したファイルの Path のリスト。
@@ -65,8 +78,24 @@ def process_image(
 
     filtered_images: list[np.ndarray] = []
     for cutoff in cutoffs:
-        out_arr = apply_cutoff(img, cutoff_percent=cutoff, mode=mode, soft_edge_px=soft_edge_px)
-        out_path = output_dir / f"{stem}_{mode}_cutoff{int(cutoff)}.{output_format}"
+        out_arr = apply_cutoff(
+            img,
+            cutoff_percent=cutoff,
+            mode=mode,
+            soft_edge_px=soft_edge_px,
+            normalize=normalize,
+        )
+        if binarize:
+            out_arr = binarize_image(
+                out_arr,
+                method=binarize_method,
+                threshold=binarize_threshold,
+                invert=binarize_invert,
+            )
+        suffix = "_bin" if binarize else ""
+        out_path = (
+            output_dir / f"{stem}_{mode}_cutoff{int(cutoff)}{suffix}.{output_format}"
+        )
         _save_image(out_arr, out_path, mode_hint="RGB")
         generated.append(out_path)
         filtered_images.append(out_arr)

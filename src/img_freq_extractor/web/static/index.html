@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>対生成AI判別用 画像周波数分布解析ツール — Web UI</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1>
+        対生成AI判別用 画像周波数分布解析ツール
+        <span class="subtitle">Web UI</span>
+      </h1>
+      <p class="banner">
+        ⚠️ 本ツールは <strong>私的利用かつローカル実行専用</strong>です。
+        公開サーバへのデプロイ／SNS 画像の自動取得は行いません。
+      </p>
+    </header>
+
+    <main class="container">
+      <section class="panel controls">
+        <h2>1. 画像と設定</h2>
+        <form id="filter-form">
+          <div class="field">
+            <label for="image-input">画像ファイル</label>
+            <input
+              id="image-input"
+              name="image"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/bmp,image/tiff"
+              required
+            />
+            <p class="hint">PNG / JPEG / WebP / BMP / TIFF（最大 20 MiB）。</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="mode-input">モード</label>
+              <select id="mode-input" name="mode">
+                <option value="highpass" selected>
+                  highpass（中〜高周波だけ残す）
+                </option>
+                <option value="lowpass">lowpass（低周波だけ残す）</option>
+                <option value="bandpass">bandpass（指定帯域だけ残す）</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="cutoffs-input">カットオフ％</label>
+              <input
+                id="cutoffs-input"
+                name="cutoffs"
+                type="text"
+                value="50, 60, 70"
+                placeholder="例: 50, 60, 70"
+              />
+              <p class="hint">
+                ナイキスト半径基準。カンマ／空白区切りで複数指定。
+              </p>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="soft-edge-input">ソフトエッジ (px)</label>
+              <input
+                id="soft-edge-input"
+                name="soft_edge"
+                type="number"
+                value="0"
+                min="0"
+                step="0.5"
+              />
+              <p class="hint">マスク縁ぼかし。リンギング軽減に。</p>
+            </div>
+
+            <div class="field" id="high-cutoff-field" hidden>
+              <label for="high-cutoff-input">bandpass 外側 ％</label>
+              <input
+                id="high-cutoff-input"
+                name="high_cutoff"
+                type="number"
+                min="0.1"
+                max="100"
+                step="0.5"
+                placeholder="例: 80"
+              />
+              <p class="hint">bandpass モード時のみ使用。</p>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="checkbox-label">
+                <input
+                  id="normalize-input"
+                  name="normalize"
+                  type="checkbox"
+                  checked
+                />
+                <span
+                  >表示用にコントラスト正規化（highpass/bandpass 推奨）</span
+                >
+              </label>
+              <p class="hint">
+                OFF にすると mean
+                を足した素の出力（高周波が暗く／白く潰れて見える）。
+              </p>
+            </div>
+          </div>
+
+          <fieldset class="field binarize-group">
+            <legend>二値化（白黒化）</legend>
+            <div class="field-row">
+              <div class="field">
+                <label class="checkbox-label">
+                  <input id="binarize-input" name="binarize" type="checkbox" />
+                  <span>二値化を有効にする</span>
+                </label>
+                <p class="hint">
+                  X 投稿の 2〜4 枚目のような白黒エッジ画像を出力します。
+                </p>
+              </div>
+              <div class="field">
+                <label class="checkbox-label">
+                  <input
+                    id="binarize-invert-input"
+                    name="binarize_invert"
+                    type="checkbox"
+                  />
+                  <span>白黒を反転</span>
+                </label>
+                <p class="hint">黒地→白地に反転します。</p>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="binarize-method-input">閾値の決め方</label>
+                <select id="binarize-method-input" name="binarize_method">
+                  <option value="otsu" selected>otsu（大津の自動閾値）</option>
+                  <option value="fixed">fixed（固定値）</option>
+                </select>
+              </div>
+              <div class="field" id="binarize-threshold-field" hidden>
+                <label for="binarize-threshold-input">閾値 (0〜255)</label>
+                <input
+                  id="binarize-threshold-input"
+                  name="binarize_threshold"
+                  type="number"
+                  value="127"
+                  min="0"
+                  max="255"
+                  step="1"
+                />
+                <p class="hint">fixed 選択時のみ使用。既定 127。</p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="field info-map-group">
+            <legend>情報量マップ（参考: Zenn 記事の軽量版）</legend>
+            <div class="field-row">
+              <div class="field">
+                <label for="info-map-input">指標</label>
+                <select id="info-map-input" name="info_map">
+                  <option value="both" selected>両方</option>
+                  <option value="local_contrast">
+                    local_contrast（局所コントラスト）
+                  </option>
+                  <option value="luminance">luminance（明度）</option>
+                  <option value="none">表示しない</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="info-window-input">窓サイズ (px)</label>
+                <input
+                  id="info-window-input"
+                  name="info_window"
+                  type="number"
+                  value="32"
+                  min="2"
+                  step="2"
+                />
+                <p class="hint">local_contrast 用。短辺の 1/16〜1/8 が目安。</p>
+              </div>
+              <div class="field">
+                <label for="info-alpha-input">ヒートマップ不透明度</label>
+                <input
+                  id="info-alpha-input"
+                  name="info_alpha"
+                  type="number"
+                  value="0.5"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                />
+                <p class="hint">0=原画のみ / 1=ヒートマップのみ。</p>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit" id="run-button" class="primary">
+              フィルタ適用
+            </button>
+            <button type="button" id="reset-button">リセット</button>
+            <span
+              id="status"
+              class="status"
+              role="status"
+              aria-live="polite"
+            ></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" id="result-section" hidden>
+        <h2>2. 結果（X / Twitter 風カード表示）</h2>
+
+        <!-- 入力カード -->
+        <article class="tweet-card" id="input-card">
+          <header class="tweet-head">
+            <div class="avatar avatar-input" aria-hidden="true">入</div>
+            <div class="who">
+              <div class="name">入力画像 <span class="badge">Input</span></div>
+              <div class="handle" id="input-meta">—</div>
+            </div>
+            <time class="time" id="input-time">—</time>
+          </header>
+          <p class="tweet-body" id="input-body">
+            アップロードした原本画像です。
+          </p>
+          <div class="tweet-media single" id="input-media"></div>
+          <footer class="tweet-actions" aria-hidden="true">
+            <span>💬 0</span><span>🔁 0</span><span>♡ 0</span><span>📊 0</span>
+          </footer>
+        </article>
+
+        <!-- 出力カード -->
+        <article class="tweet-card" id="output-card">
+          <header class="tweet-head">
+            <div class="avatar avatar-output" aria-hidden="true">出</div>
+            <div class="who">
+              <div class="name">
+                フィルタ結果 <span class="badge badge-out">Output</span>
+              </div>
+              <div class="handle" id="output-meta">—</div>
+            </div>
+            <time class="time" id="output-time">—</time>
+          </header>
+          <p class="tweet-body" id="output-body">—</p>
+          <div class="tweet-media grid" id="output-media"></div>
+          <div class="comparison">
+            <h3>比較ストリップ（原本 + 各カットオフ）</h3>
+            <div id="comparison-media"></div>
+          </div>
+          <footer class="tweet-actions" aria-hidden="true">
+            <span>💬 0</span><span>🔁 0</span><span>♡ 0</span><span>📊 0</span>
+          </footer>
+        </article>
+
+        <!-- 情報量マップカード (Zenn 記事の軽量版) -->
+        <article class="tweet-card" id="info-card" hidden>
+          <header class="tweet-head">
+            <div class="avatar avatar-info" aria-hidden="true">熱</div>
+            <div class="who">
+              <div class="name">
+                情報量マップ <span class="badge badge-info">Heatmap</span>
+              </div>
+              <div class="handle" id="info-meta">—</div>
+            </div>
+            <time class="time" id="info-time">—</time>
+          </header>
+          <p class="tweet-body">
+            ヒートマップは jet カラーマップ（青=低 → 赤=高）。
+            <a
+              href="https://zenn.dev/mattyamonaca/articles/d3d7acbd796733"
+              target="_blank"
+              rel="noopener"
+              >Zenn 記事</a
+            >
+            の SAM ベース実装の代替として、PyTorch
+            非依存の軽量版で実装しています。
+          </p>
+          <div id="info-maps-container"></div>
+          <footer class="tweet-actions" aria-hidden="true">
+            <span>💬 0</span><span>🔁 0</span><span>♡ 0</span><span>📊 0</span>
+          </footer>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <small>
+        Algorithm: 再実装 of
+        <a
+          href="https://github.com/djmannion/img_freq_web"
+          target="_blank"
+          rel="noopener"
+          >djmannion/img_freq_web</a
+        >
+        (MIT) / Local-only UI ·
+        <a href="/api/health">/api/health</a>
+      </small>
+    </footer>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

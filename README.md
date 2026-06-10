@@ -50,12 +50,12 @@ python -m img_freq_extractor input.png -o out --no-strip
 
 入力 `sample.png` から、既定設定で以下が生成されます。
 
-| ファイル | 内容 |
-|---|---|
-| `sample_highpass_cutoff50.png` | 50% を超える周波数のみ残した画像 |
-| `sample_highpass_cutoff60.png` | 60% を超える周波数のみ残した画像 |
-| `sample_highpass_cutoff70.png` | 70% を超える周波数のみ残した画像 |
-| `sample_compare.png` | 原本 + 上記 3 枚を横並びにした比較画像（X 投稿レイアウト） |
+| ファイル                       | 内容                                                       |
+| ------------------------------ | ---------------------------------------------------------- |
+| `sample_highpass_cutoff50.png` | 50% を超える周波数のみ残した画像                           |
+| `sample_highpass_cutoff60.png` | 60% を超える周波数のみ残した画像                           |
+| `sample_highpass_cutoff70.png` | 70% を超える周波数のみ残した画像                           |
+| `sample_compare.png`           | 原本 + 上記 3 枚を横並びにした比較画像（X 投稿レイアウト） |
 
 カットオフ値は **画像短辺の半分（ナイキスト半径）に対するパーセント** です。
 
@@ -79,6 +79,22 @@ process_image("input.png", "out/", cutoffs=(50, 60, 70))
 ```powershell
 pytest -q
 ```
+
+## Web UI（ローカル限定）
+
+ブラウザから画像をアップロードして、X / Twitter 投稿風カードレイアウトで
+入出力を比較できる **ローカル専用** Web UI を同梱しています。
+公開はしません（バインドは `127.0.0.1`、外部ネットワークから到達不可）。
+
+```powershell
+# 既定: http://127.0.0.1:4165/
+python -m img_freq_extractor --serve
+
+# ポート変更
+python -m img_freq_extractor --serve --port 8080
+```
+
+詳細な使い方・画面構成・API 仕様は [docs/webui.md](docs/webui.md) を参照してください。
 
 ## 開発者向けドキュメント
 
