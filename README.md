@@ -1,21 +1,25 @@
 # ImageFrequencyCheckerForHandmaidsVsAI
 
-> ⚠️ **重要 — 私的利用かつプライベートブランチ運用前提**
+> 🧪 **実験的ツールです** — 本ツールは画像の空間周波数帯域分布を可視化し、
+> AI 生成画像と人手描き画像の傾向比較を補助することを目的とした実験的・教育的な
+> ツールです。出力はあくまで判断材料であり、AI 生成か否かを断定するものでは
+> ありません。利用にあたっては、Upstream である
+> [`djmannion/img_freq_web`](https://github.com/djmannion/img_freq_web) (MIT) の規約、
+> 入力画像の権利関係、各 SNS の利用規約を必ず遵守してください。詳細は
+> [NOTICE.md](NOTICE.md) を参照。
 >
-> 本リポジトリは **個人の私的利用（教育・自己学習・私的検証）** に限定して
-> 運用します。**パブリックリポジトリへの公開、第三者への配布、商用利用は
-> 行いません**。Upstream である [`djmannion/img_freq_web`](https://github.com/djmannion/img_freq_web)
-> (MIT) の規約、入力画像の権利関係、各 SNS の利用規約を必ず遵守してください。
-> 詳細は [NOTICE.md](NOTICE.md) を参照。
+> 🤖 本ツールは **GitHub Copilot と Claude によるバイブコーディング** で実装されました。
+> AI 支援開発の特性上、想定外の挙動が残っている可能性があります。Issue / PR を歓迎します。
+
+[![CI](https://github.com/radiann-kswg/ImageFrequencyCheckerForHandmaidsVsAI/actions/workflows/ci.yml/badge.svg)](https://github.com/radiann-kswg/ImageFrequencyCheckerForHandmaidsVsAI/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 
 画像 1 枚を入力として、空間周波数帯域を **3 段階のカットオフ（既定 50% / 60% / 70%）**
 で抽出した画像を一括出力する CLI ツールです。
 [`djmannion/img_freq_web`](https://github.com/djmannion/img_freq_web) (MIT) のアルゴリズム
 「FFT → 円形カットオフ → 逆 FFT」を Python に再実装し、複数カットオフを
 バッチ処理できるようにしたものです。
-
-着想元: AI 画像と手描き画像で中間周波数帯域の情報分布を比較する投稿
-([例1](https://x.com/dried_gosari/status/2064347491152306560) / [例2](https://x.com/dried_gosari/status/2064348024906936621))。
 
 ## クイックスタート
 
@@ -96,10 +100,17 @@ python -m img_freq_extractor --serve --port 8080
 
 詳細な使い方・画面構成・API 仕様は [docs/webui.md](docs/webui.md) を参照してください。
 
+## コントリビュート
+
+Issue / Pull Request を歓迎します。開発の進め方・設計方針は
+[CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。
+
 ## 開発者向けドキュメント
 
+- コントリビュートガイド → [CONTRIBUTING.md](CONTRIBUTING.md)
 - AI エージェント向けガイド → [AGENTS.md](AGENTS.md)
 - Copilot 詳細指示書 → [.github/copilot-instructions.md](.github/copilot-instructions.md)
+- Claude 向け設定 → [CLAUDE.md](CLAUDE.md)
 - Upstream クローン手順 → [third_party/README.md](third_party/README.md)
 - 帰属・ライセンス通知 → [NOTICE.md](NOTICE.md)
 

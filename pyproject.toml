@@ -9,7 +9,7 @@ description = "画像の空間周波数帯域を 3 段階のカットオフで�
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "Local Private User" }]
+authors = [{ name = "radiann-kswg" }]
 keywords = ["image", "fft", "spatial-frequency", "ai-image-detection"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -20,12 +20,16 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Multimedia :: Graphics",
-    "Private :: Do Not Upload",
 ]
 dependencies = [
     "numpy>=1.24",
     "Pillow>=10.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/radiann-kswg/ImageFrequencyCheckerForHandmaidsVsAI"
+Repository = "https://github.com/radiann-kswg/ImageFrequencyCheckerForHandmaidsVsAI"
+Issues = "https://github.com/radiann-kswg/ImageFrequencyCheckerForHandmaidsVsAI/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]

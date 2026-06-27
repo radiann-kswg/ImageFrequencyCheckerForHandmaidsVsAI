@@ -9,15 +9,14 @@
 
 - 回答は **必ず日本語** で行うこと。コードコメント・ドキッグストリング・ログメッセージも日本語で統一する（識別子は英語）。
 - **大規模変更（目安: 200 行以上、または既存のパブリック API のシグネチャ変更）を行う前に、必ず変更計画を箇条書きで提示し、ユーザーの承認を得てから実装する**。
-- 本リポジトリは **私的利用かつプライベートブランチ運用** を前提としている。
-  - **パブリックリポジトリへの push、第三者配布、商用利用を想定する変更を提案しない**（CI/CD で公開デプロイするワークフロー追加、PyPI 公開設定、Docker Hub 公開、GitHub Pages デプロイ等を勝手に提案しない）。
-  - `pyproject.toml` の `classifiers` にある `Private :: Do Not Upload` を **削除しない**。
-  - [AGENTS.md](../AGENTS.md) / [README.md](../README.md) 冒頭の警告ブロックを **削除・改変しない**。
+- 本リポジトリは **MIT ライセンスで公開している実験的・教育的ツール**。
+  - 公開ツールとして、READMEの警告（「AI 生成の断定はできない」「入力画像の権利・SNS 規約を守る」）の趣旨を維持する。
+  - 派手な公開デプロイ（PyPI 自動公開、Docker Hub 公開、GitHub Pages デプロイ等）を**無断で追加しない**。必要なら計画を提示して承認を得る。
 - 本リポジトリは Upstream `djmannion/img_freq_web` (MIT) の **アルゴリズムを再実装** したもの。
   - Upstream の JavaScript コードを **そのまま翻訳して貼り付けない**（独自再実装の形を保つ）。
   - [NOTICE.md](../NOTICE.md) の帰属表記を勝手に削除しない。
 - **SNS（X / Twitter 等）から画像を自動取得する機能、スクレイピング機能は追加しない**。各 SNS の利用規約に抵触し得るため。
-- ワークスペースのパスにスペース (`VisualStudio Code Userfile`) が含まれる。PowerShell コマンド例では必ずパスをダブルクォートで囲むこと。
+- ワークスペースのパスにスペースが含まれる環境でも動作させる。PowerShell コマンド例では必ずパスをダブルクォートで囲むこと。
 
 ## 2. アプリの概要
 
@@ -131,7 +130,7 @@ ImageFrequencyCheckerForHandmaidsVsAI/
   pytest -q
   ```
 - **カバレッジ目標**: 当面は `filter.py` の主要関数を全てカバー。CLI は smoke 実行で十分。
-- **CI**: 現時点では設定しない（私的利用前提）。追加するなら、GitHub Actions を **`workflow_dispatch` のみ**にし、自動公開を行わない構成にする。
+- **CI**: GitHub Actions で push / PR 時に `pytest` を実行する（[.github/workflows/ci.yml](workflows/ci.yml)）。CI はテストのみで、公開デプロイ（PyPI / Docker / Pages）は行わない。
 
 ## 7. アンチパターン（やってはいけないこと）
 
@@ -153,11 +152,10 @@ ImageFrequencyCheckerForHandmaidsVsAI/
 
 ### 運用・規約
 
-- ❌ **`AGENTS.md` / `README.md` 冒頭の私的利用警告ブロックを削除・改変しない**。
 - ❌ **`NOTICE.md` の Upstream 帰属を削除しない**。
+- ❌ **README の「AI 生成を断定しない／入力画像の権利・SNS 規約を守る」という注意の趣旨を削除しない**。
 - ❌ **SNS 画像取得・スクレイピングコードを追加しない**。
-- ❌ **PyPI / Docker Hub / GitHub Pages 等への自動公開ワークフローを追加しない**。
-- ❌ **`pyproject.toml` の `Private :: Do Not Upload` classifier を削除しない**。
+- ❌ **PyPI / Docker Hub / GitHub Pages 等への自動公開ワークフローを無断で追加しない**（必要なら計画提示の上で）。
 - ❌ **`third_party/img_freq_web/` の中身を改変してコミットしない**（あくまで参照用）。
 - ❌ **入力画像 (`examples/input/`) や出力 (`examples/output/`) を `.gitignore` から外さない**（個人画像の誤公開防止）。
 

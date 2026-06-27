@@ -338,9 +338,7 @@ curl.exe -X POST "http://127.0.0.1:4165/api/process" `
   のみで動作します。Flask / FastAPI / Node.js は使用しません。
 - **層分離は厳守**: `server.py` は薄いブリッジで、`filter.py` / `compose.py`
   の純粋関数を呼ぶだけ。アルゴリズム側に Web 由来のコードは入りません。
-- **フロントエンドはバニラ HTML/CSS/JS (ES Modules)**。
-  ([database.numbertales-radiann.net](https://database.numbertales-radiann.net/)
-  と同じ構成方針)
+- **フロントエンドはバニラ HTML/CSS/JS (ES Modules)**。フレームワークは使いません。
 - **`cgi` を使わない**: Python 3.13+ で `cgi` が削除されたため、最小限の
   multipart パーサ（[server.py](../src/img_freq_extractor/server.py) の
   `_parse_multipart`）を自前実装しています。
