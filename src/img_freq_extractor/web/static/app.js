@@ -46,9 +46,26 @@ const els = {
 };
 
 // ── 補助 ───────────────────────────────────────────────────────────
+// トップ HUD の STATUS インジケータ（任意要素。無くても動作する）。
+const hudStatusEl = document.querySelector("#hud-status");
+const HUD_STATE = {
+	"": { label: "STANDBY", cls: "dot" },
+	ok: { label: "ONLINE", cls: "dot" },
+	err: { label: "FAULT", cls: "dot err" },
+	busy: { label: "PROCESSING", cls: "dot busy" },
+};
+
+function setHudStatus(kind) {
+	if (!hudStatusEl) return;
+	const s = HUD_STATE[kind] ?? HUD_STATE[""];
+	hudStatusEl.textContent = s.label;
+	hudStatusEl.className = "tlm-v " + s.cls;
+}
+
 function setStatus(text, kind = "") {
 	els.status.textContent = text;
 	els.status.className = "status" + (kind ? ` ${kind}` : "");
+	setHudStatus(kind);
 }
 
 function fmtTime(d) {
@@ -308,7 +325,7 @@ els.form.addEventListener("submit", async (ev) => {
 	fd.append("info_alpha", els.infoAlphaInput.value || "0.5");
 
 	els.runButton.disabled = true;
-	setStatus("処理中…", "");
+	setStatus("処理中…", "busy");
 	const t0 = performance.now();
 	try {
 		const res = await fetch("/api/process", { method: "POST", body: fd });

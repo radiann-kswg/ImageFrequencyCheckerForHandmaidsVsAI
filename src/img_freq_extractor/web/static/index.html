@@ -4,28 +4,60 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>対生成AI判別用 画像周波数分布解析ツール — Web UI</title>
+    <title>SPECTRAL ANALYSIS CONSOLE — 画像周波数分布解析ツール</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <header class="site-header">
-      <h1>
-        対生成AI判別用 画像周波数分布解析ツール
-        <span class="subtitle">Web UI</span>
-      </h1>
-      <p class="banner">
-        ⚠️ この Web UI は <strong>ローカル実行専用</strong>です（127.0.0.1 バインド）。
-        公開サーバへのデプロイ／SNS 画像の自動取得は行いません。出力は AI 生成を断定する
-        ものではなく、周波数分布の比較を補助する参考情報です。
-      </p>
+    <!-- 背景レイヤ: グリッド + スキャンライン (装飾) -->
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-scanlines" aria-hidden="true"></div>
+
+    <!-- ── トップ HUD バー ───────────────────────────────────────────── -->
+    <header class="hud-bar">
+      <div class="hud-brand">
+        <span class="hud-glyph" aria-hidden="true">◈</span>
+        <div class="hud-title">
+          <h1>SPECTRAL&nbsp;ANALYSIS&nbsp;CONSOLE</h1>
+          <p class="hud-sub">対生成AI判別用 画像周波数分布解析ツール <span class="ver">// FFT&nbsp;CUTOFF&nbsp;UNIT</span></p>
+        </div>
+      </div>
+      <div class="hud-telemetry" aria-hidden="true">
+        <div class="tlm">
+          <span class="tlm-k">LINK</span>
+          <span class="tlm-v" id="hud-link">127.0.0.1</span>
+        </div>
+        <div class="tlm">
+          <span class="tlm-k">CORE</span>
+          <span class="tlm-v" id="hud-core">FFT/IFFT</span>
+        </div>
+        <div class="tlm">
+          <span class="tlm-k">STATUS</span>
+          <span class="tlm-v dot" id="hud-status">STANDBY</span>
+        </div>
+      </div>
     </header>
 
-    <main class="container">
-      <section class="panel controls">
-        <h2>1. 画像と設定</h2>
+    <!-- 法的・安全上の注意（保持） -->
+    <p class="notice-strip">
+      <span class="notice-tag">NOTICE</span>
+      この Web UI は <strong>ローカル実行専用</strong>です（127.0.0.1 バインド）。
+      公開サーバへのデプロイ／SNS 画像の自動取得は行いません。出力は AI 生成を断定する
+      ものではなく、周波数分布の比較を補助する参考情報です。
+    </p>
+
+    <!-- ── メイン: 2 カラム HUD ─────────────────────────────────────── -->
+    <main class="console">
+      <!-- 左: コントロールコンソール -->
+      <section class="panel console-controls" aria-labelledby="controls-h">
+        <div class="panel-head">
+          <span class="panel-idx">01</span>
+          <h2 id="controls-h">CONTROL&nbsp;CONSOLE</h2>
+          <span class="panel-flag">INPUT&nbsp;PARAMS</span>
+        </div>
+
         <form id="filter-form">
           <div class="field">
-            <label for="image-input">画像ファイル</label>
+            <label for="image-input">SOURCE IMAGE / 画像ファイル</label>
             <input
               id="image-input"
               name="image"
@@ -38,7 +70,7 @@
 
           <div class="field-row">
             <div class="field">
-              <label for="mode-input">モード</label>
+              <label for="mode-input">MODE / モード</label>
               <select id="mode-input" name="mode">
                 <option value="highpass" selected>
                   highpass（中〜高周波だけ残す）
@@ -49,7 +81,7 @@
             </div>
 
             <div class="field">
-              <label for="cutoffs-input">カットオフ％</label>
+              <label for="cutoffs-input">CUTOFF % / カットオフ</label>
               <input
                 id="cutoffs-input"
                 name="cutoffs"
@@ -65,7 +97,7 @@
 
           <div class="field-row">
             <div class="field">
-              <label for="soft-edge-input">ソフトエッジ (px)</label>
+              <label for="soft-edge-input">SOFT EDGE (px) / ソフトエッジ</label>
               <input
                 id="soft-edge-input"
                 name="soft_edge"
@@ -78,7 +110,7 @@
             </div>
 
             <div class="field" id="high-cutoff-field" hidden>
-              <label for="high-cutoff-input">bandpass 外側 ％</label>
+              <label for="high-cutoff-input">BANDPASS 外側 %</label>
               <input
                 id="high-cutoff-input"
                 name="high_cutoff"
@@ -113,7 +145,7 @@
           </div>
 
           <fieldset class="field binarize-group">
-            <legend>二値化（白黒化）</legend>
+            <legend>BINARIZE / 二値化（白黒化）</legend>
             <div class="field-row">
               <div class="field">
                 <label class="checkbox-label">
@@ -121,7 +153,7 @@
                   <span>二値化を有効にする</span>
                 </label>
                 <p class="hint">
-                  X 投稿の 2〜4 枚目のような白黒エッジ画像を出力します。
+                  白黒エッジ画像（しきい値ベース）を出力します。
                 </p>
               </div>
               <div class="field">
@@ -161,7 +193,7 @@
           </fieldset>
 
           <fieldset class="field info-map-group">
-            <legend>情報量マップ（参考: Zenn 記事の軽量版）</legend>
+            <legend>INFO MAP / 情報量マップ（軽量版）</legend>
             <div class="field-row">
               <div class="field">
                 <label for="info-map-input">指標</label>
@@ -204,9 +236,9 @@
 
           <div class="actions">
             <button type="submit" id="run-button" class="primary">
-              フィルタ適用
+              <span class="btn-glyph" aria-hidden="true">▶</span> EXECUTE / フィルタ適用
             </button>
-            <button type="button" id="reset-button">リセット</button>
+            <button type="button" id="reset-button">RESET</button>
             <span
               id="status"
               class="status"
@@ -217,92 +249,118 @@
         </form>
       </section>
 
-      <section class="panel" id="result-section" hidden>
-        <h2>2. 結果（X / Twitter 風カード表示）</h2>
-
-        <!-- 入力カード -->
-        <article class="tweet-card" id="input-card">
-          <header class="tweet-head">
-            <div class="avatar avatar-input" aria-hidden="true">入</div>
-            <div class="who">
-              <div class="name">入力画像 <span class="badge">Input</span></div>
-              <div class="handle" id="input-meta">—</div>
-            </div>
-            <time class="time" id="input-time">—</time>
-          </header>
-          <p class="tweet-body" id="input-body">
-            アップロードした原本画像です。
-          </p>
-          <div class="tweet-media single" id="input-media"></div>
-          <footer class="tweet-actions" aria-hidden="true">
-            <span>💬 0</span><span>🔁 0</span><span>♡ 0</span><span>📊 0</span>
-          </footer>
-        </article>
-
-        <!-- 出力カード -->
-        <article class="tweet-card" id="output-card">
-          <header class="tweet-head">
-            <div class="avatar avatar-output" aria-hidden="true">出</div>
-            <div class="who">
-              <div class="name">
-                フィルタ結果 <span class="badge badge-out">Output</span>
-              </div>
-              <div class="handle" id="output-meta">—</div>
-            </div>
-            <time class="time" id="output-time">—</time>
-          </header>
-          <p class="tweet-body" id="output-body">—</p>
-          <div class="tweet-media grid" id="output-media"></div>
-          <div class="comparison">
-            <h3>比較ストリップ（原本 + 各カットオフ）</h3>
-            <div id="comparison-media"></div>
+      <!-- 右: 解析ビューポート -->
+      <div class="console-viewport">
+        <section class="panel" id="result-section" hidden>
+          <div class="panel-head">
+            <span class="panel-idx">02</span>
+            <h2>ANALYSIS&nbsp;OUTPUT</h2>
+            <span class="panel-flag">SPECTRAL&nbsp;READOUT</span>
           </div>
-          <footer class="tweet-actions" aria-hidden="true">
-            <span>💬 0</span><span>🔁 0</span><span>♡ 0</span><span>📊 0</span>
-          </footer>
-        </article>
 
-        <!-- 情報量マップカード (Zenn 記事の軽量版) -->
-        <article class="tweet-card" id="info-card" hidden>
-          <header class="tweet-head">
-            <div class="avatar avatar-info" aria-hidden="true">熱</div>
-            <div class="who">
-              <div class="name">
-                情報量マップ <span class="badge badge-info">Heatmap</span>
+          <!-- 入力モジュール -->
+          <article class="readout-card" id="input-card">
+            <header class="card-head">
+              <div class="node node-input" aria-hidden="true">IN</div>
+              <div class="who">
+                <div class="name">SOURCE FRAME <span class="badge">INPUT</span></div>
+                <div class="handle" id="input-meta">—</div>
               </div>
-              <div class="handle" id="info-meta">—</div>
+              <time class="time" id="input-time">—</time>
+            </header>
+            <p class="card-body" id="input-body">
+              アップロードした原本画像です。
+            </p>
+            <div class="tweet-media single" id="input-media"></div>
+            <footer class="card-telemetry" aria-hidden="true">
+              <span>CH:RGB</span><span>FMT:RAW</span><span>SIG:NOMINAL</span><span>◧ LOCK</span>
+            </footer>
+          </article>
+
+          <!-- 出力モジュール -->
+          <article class="readout-card" id="output-card">
+            <header class="card-head">
+              <div class="node node-output" aria-hidden="true">FX</div>
+              <div class="who">
+                <div class="name">
+                  FILTERED OUTPUT <span class="badge badge-out">OUTPUT</span>
+                </div>
+                <div class="handle" id="output-meta">—</div>
+              </div>
+              <time class="time" id="output-time">—</time>
+            </header>
+            <p class="card-body mono" id="output-body">—</p>
+            <div class="tweet-media grid" id="output-media"></div>
+            <div class="comparison">
+              <h3>COMPARISON STRIP / 比較ストリップ（原本 + 各カットオフ）</h3>
+              <div id="comparison-media"></div>
             </div>
-            <time class="time" id="info-time">—</time>
-          </header>
-          <p class="tweet-body">
-            ヒートマップは jet カラーマップ（青=低 → 赤=高）。
-            <a
-              href="https://zenn.dev/mattyamonaca/articles/d3d7acbd796733"
-              target="_blank"
-              rel="noopener"
-              >Zenn 記事</a
-            >
-            の SAM ベース実装の代替として、PyTorch
-            非依存の軽量版で実装しています。
-          </p>
-          <div id="info-maps-container"></div>
-          <footer class="tweet-actions" aria-hidden="true">
-            <span>💬 0</span><span>🔁 0</span><span>♡ 0</span><span>📊 0</span>
-          </footer>
-        </article>
-      </section>
+            <footer class="card-telemetry" aria-hidden="true">
+              <span>XFRM:FFT</span><span>MASK:RADIAL</span><span>INV:IFFT</span><span>◧ DONE</span>
+            </footer>
+          </article>
+
+          <!-- 情報量マップモジュール -->
+          <article class="readout-card" id="info-card" hidden>
+            <header class="card-head">
+              <div class="node node-info" aria-hidden="true">IM</div>
+              <div class="who">
+                <div class="name">
+                  INFORMATION MAP <span class="badge badge-info">HEATMAP</span>
+                </div>
+                <div class="handle" id="info-meta">—</div>
+              </div>
+              <time class="time" id="info-time">—</time>
+            </header>
+            <p class="card-body">
+              ヒートマップは jet カラーマップ（青=低 → 赤=高）。
+              <a
+                href="https://zenn.dev/mattyamonaca/articles/d3d7acbd796733"
+                target="_blank"
+                rel="noopener"
+                >Zenn 記事</a
+              >
+              の SAM ベース実装の代替として、PyTorch
+              非依存の軽量版で実装しています。
+            </p>
+            <div id="info-maps-container"></div>
+            <footer class="card-telemetry" aria-hidden="true">
+              <span>MAP:JET</span><span>STAT:STDDEV</span><span>◧ OVERLAY</span>
+            </footer>
+          </article>
+        </section>
+
+        <!-- 待機画面（result-section が表示されると CSS で自動的に隠れる） -->
+        <section class="panel standby-panel" id="standby-panel" aria-hidden="true">
+          <div class="panel-head">
+            <span class="panel-idx">02</span>
+            <h2>ANALYSIS&nbsp;OUTPUT</h2>
+            <span class="panel-flag">STANDBY</span>
+          </div>
+          <div class="standby-body">
+            <div class="standby-ring" aria-hidden="true">
+              <span class="standby-core">◈</span>
+            </div>
+            <p class="standby-text">AWAITING INPUT SIGNAL</p>
+            <p class="standby-hint">
+              左の CONTROL CONSOLE で画像とパラメータを設定し、
+              <strong>EXECUTE</strong> を実行してください。
+            </p>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <footer class="site-footer">
+    <footer class="hud-footer">
       <small>
-        Algorithm: 再実装 of
+        ALGORITHM: 再実装 of
         <a
           href="https://github.com/djmannion/img_freq_web"
           target="_blank"
           rel="noopener"
           >djmannion/img_freq_web</a
         >
-        (MIT) / Local-only UI ·
+        (MIT) · LOCAL-ONLY UI ·
         <a href="/api/health">/api/health</a>
       </small>
     </footer>
