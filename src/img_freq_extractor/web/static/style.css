@@ -137,6 +137,7 @@ a:hover {
 	backdrop-filter: blur(6px);
 	position: sticky;
 	top: 0;
+	z-index: 100;
 }
 
 .hud-brand {
@@ -264,7 +265,7 @@ a:hover {
 	align-items: start;
 }
 
-.console-controls {
+.panel.console-controls {
 	position: sticky;
 	top: 84px;
 }
@@ -279,7 +280,7 @@ a:hover {
 	.console {
 		grid-template-columns: 1fr;
 	}
-	.console-controls {
+	.panel.console-controls {
 		position: static;
 	}
 }
@@ -966,4 +967,6 @@ button:disabled {
 	font-family: var(--mono);
 	font-size: 11px;
 	letter-spacing: 0.06em;
+	position: relative;
+	z-index: 10;
 }
